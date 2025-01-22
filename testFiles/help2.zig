@@ -448,10 +448,26 @@ pub fn helpMeSolve2(line1: []u8, line2: []u8, allocator: anytype) ![]const u8 {
 
 
     var count: usize = 0;
-    for (line1split.items) |value| {//Get all words
+    for (line1split.items) |wordOnLine1| {//Get all words
+
+        std.debug.print("--- Map 1---\n", .{});
+        var it = mixedHashmap1.iterator();
+        while (it.next()) |entry| {
+            std.debug.print("Key: {s}, Value: {s}\n", .{entry.key_ptr.*, entry.value_ptr.*.value});
+        }
+
+        std.debug.print("--- Map 2---\n", .{});
+        it = mixedHashmap2.iterator();
+        while (it.next()) |entry| {
+            std.debug.print("Key: {s}, Value: {s}\n", .{entry.key_ptr.*, entry.value_ptr.*.value});
+        }
+
+
+
+        std.debug.print("----We are on count{d}----\n", .{count});
         const aboveLine = line2split.items[count]; // Word on other line
-        if (value[0] == '<') { // We have a variable
-            const node = mixedHashmap1.get(value);
+        if (wordOnLine1[0] == '<') { // We have a variable
+            const node = mixedHashmap1.get(wordOnLine1);
             if(node)| node1|{// We have a node already present for this variable
 
                 if (aboveLine[0] == '<') { // Other line has a variable
@@ -461,15 +477,17 @@ pub fn helpMeSolve2(line1: []u8, line2: []u8, allocator: anytype) ![]const u8 {
                         // We need to check if this node has a reference to node1 otherwise add one
                         // and we need to check if it has a word in word no need to since it will auto propagate
 
-                        if(checkForReferense(aboveNode1, value)){// We add reference
-                            try aboveNode1.nodeList.append(value);
+                        if(checkForReferense(aboveNode1, wordOnLine1)){// We add reference
+                            try aboveNode1.nodeList.append(wordOnLine1);
                         }
                     }else{ // No node was present so we set up a new one and add referense to node one
                         var newAboveNode = try Node.init(allocator);
                         newAboveNode.value = aboveLine;
                         std.debug.print("New node on line 2 value:{s} \n", .{newAboveNode.value});
-                        try newAboveNode.nodeList.append(value); 
+                        try newAboveNode.nodeList.append(wordOnLine1); 
                         try mixedHashmap2.put(@as([]const u8, aboveLine), &newAboveNode);
+                        std.debug.print("put: {s} map2, val {s}\n", .{aboveLine,newAboveNode.value});
+
                     }
                     count +=1;
                     continue;
@@ -485,7 +503,7 @@ pub fn helpMeSolve2(line1: []u8, line2: []u8, allocator: anytype) ![]const u8 {
                             return "-";
                         }
                     }
-                    std.debug.print("We propagate\n", .{});
+                    std.debug.print("We propagate from line 1\n", .{});
                     node1.word = aboveLine;
                     try propagateWord(node1, aboveLine, mixedHashmap2, mixedHashmap1);
 
@@ -496,19 +514,37 @@ pub fn helpMeSolve2(line1: []u8, line2: []u8, allocator: anytype) ![]const u8 {
             } else { // We have no node present for this variable
                 // Will create problem where line has a word with <>
                 var newNode = try Node.init(allocator); // Create new node
-                newNode.value = value;
+                std.debug.print("New node beore on line1 value:{s} \n", .{newNode.value});
+
+                std.debug.print("--- Map 1 before change value---\n", .{});
+                var it2 = mixedHashmap1.iterator();
+                while (it2.next()) |entry| {
+                    std.debug.print("Key: {s}, Value: {s}\n", .{entry.key_ptr.*, entry.value_ptr.*.value});
+                }
+
+                newNode.value = wordOnLine1;
+
+
+                std.debug.print("--- Map 1 change value---\n", .{});
+                it2 = mixedHashmap1.iterator();
+                while (it2.next()) |entry| {
+                    std.debug.print("Key: {s}, Value: {s}\n", .{entry.key_ptr.*, entry.value_ptr.*.value});
+                }
                 std.debug.print("New node on line1 value:{s} \n", .{newNode.value});
-                if (aboveLine[0] == '<') { // Check if word on other side is var
+
+
+                if (aboveLine[0] == '<') { // Check if word on line 2
                     const aboveNode = mixedHashmap2.get(aboveLine);
                     if(aboveNode)|aboveNode1|{ // Node for this variable exists
-                        try aboveNode1.nodeList.append(value);
+                        try aboveNode1.nodeList.append(wordOnLine1);
                         try newNode.nodeList.append(aboveLine);
                         newNode.word = aboveNode1.word;
                     }else{
                         var newAboveNode = try Node.init(allocator);
                         newAboveNode.value = aboveLine;
                         std.debug.print("New node for both lines:{s} \n", .{newAboveNode.value});
-                        try newAboveNode.nodeList.append(value);
+                        try newAboveNode.nodeList.append(wordOnLine1);
+                        std.debug.print("put: {s} map2, val {s}\n", .{aboveLine,newAboveNode.value});
                         try mixedHashmap2.put(@as([]const u8, aboveLine), &newAboveNode);
                         const tes = mixedHashmap2.get(aboveLine);
                         if (tes)|tes1| {
@@ -517,14 +553,31 @@ pub fn helpMeSolve2(line1: []u8, line2: []u8, allocator: anytype) ![]const u8 {
                             std.debug.print("problem\n", .{});
                         }
                     }
-                    try mixedHashmap1.put(@as([]const u8, value), &newNode);
+                    std.debug.print("put: {s} map1, val {s}\n", .{wordOnLine1,newNode.value});
+                    try mixedHashmap1.put(@as([]const u8, wordOnLine1), &newNode);
                     count +=1;
                     continue;
-                } else{// There is a word on other side
+                } else{// There is a word on line 2
 
                     newNode.word = aboveLine;
-                    try propagateWord(&newNode, aboveLine, mixedHashmap2, mixedHashmap1);
-                    try mixedHashmap1.put(@as([]const u8, value), &newNode);
+                    //Do I need to propogate this? If it is a newnode shouldn't have a neighbour list
+                    //try propagateWord(&newNode, aboveLine, mixedHashmap2, mixedHashmap1);
+                    std.debug.print("put: {s} map1, val {s}\n", .{wordOnLine1,newNode.value});
+                    
+                    std.debug.print("--- Map 1 before put---\n", .{});
+                    it2 = mixedHashmap1.iterator();
+                    while (it2.next()) |entry| {
+                        std.debug.print("Key: {s}, Value: {s}\n", .{entry.key_ptr.*, entry.value_ptr.*.value});
+                    }
+                    
+                    try mixedHashmap1.put(@as([]const u8, wordOnLine1), &newNode);
+                    
+                    std.debug.print("--- Map 1 here---\n", .{});
+                    it2 = mixedHashmap1.iterator();
+                    while (it2.next()) |entry| {
+                        std.debug.print("Key: {s}, Value: {s}\n", .{entry.key_ptr.*, entry.value_ptr.*.value});
+                    }
+                    
                     count +=1;
                     continue;
                 }
@@ -536,31 +589,37 @@ pub fn helpMeSolve2(line1: []u8, line2: []u8, allocator: anytype) ![]const u8 {
                 const aboveNode = mixedHashmap2.get(aboveLine);
                 if(aboveNode)|aboveNode1|{ // Node for this variable exists
                     if (aboveNode1.word.len != 0) {// Has word?
-                        if (std.mem.eql(u8, value, aboveNode1.word)) {
+                        if (std.mem.eql(u8, wordOnLine1, aboveNode1.word)) {
                             //No problem word is according to pattern
                         }else {
                             // std.debug.print("1got it \n", .{});
                             return "-";
                         }
                     } else{ // Otherwise add word
-                        std.debug.print("We propagate\n", .{});
-                        aboveNode1.word = value;
-
-                        try propagateWord(aboveNode1, value, mixedHashmap1, mixedHashmap2);
+                        std.debug.print("We propagate from line 2\n", .{});
+                        aboveNode1.word = wordOnLine1;
+                        std.debug.print("Neiboughrs: ", .{});
+                        for(aboveNode1.nodeList.items)|items|{
+                            std.debug.print("{s} ", .{items});
+                        }
+                        std.debug.print("\n", .{});
+                        try propagateWord(aboveNode1, wordOnLine1, mixedHashmap1, mixedHashmap2);
                     }
                 }else{
                     var newAboveNode = try Node.init(allocator);
-                    newAboveNode.word = value;
+                    newAboveNode.word = wordOnLine1;
                     newAboveNode.value = aboveLine;
                     std.debug.print("New node for line 2, word on line 1 value: {s} \n", .{newAboveNode.value});
+                    //Same here shouldn't have to propagate
+                    // try propagateWord(&newAboveNode, value, mixedHashmap1, mixedHashmap2);
+                    std.debug.print("put: {s} map2, val {s}\n", .{aboveLine,newAboveNode.value});
 
-                    try propagateWord(&newAboveNode, value, mixedHashmap1, mixedHashmap2);
                     try mixedHashmap2.put(@as([]const u8, aboveLine), &newAboveNode);
                 }                
 
 
             }else {
-                if (std.mem.eql(u8, value, aboveLine)) {
+                if (std.mem.eql(u8, wordOnLine1, aboveLine)) {
                     //No problem word is according to pattern
                 }else {
                     //std.debug.print("1got it \n", .{});
@@ -572,6 +631,18 @@ pub fn helpMeSolve2(line1: []u8, line2: []u8, allocator: anytype) ![]const u8 {
 
         // Could just do all of the other checks for the other line here instead of going through another loop
         count +=1;
+    }
+
+    std.debug.print("--- Map 1---\n", .{});
+    var it = mixedHashmap1.iterator();
+    while (it.next()) |entry| {
+        std.debug.print("Key: {s}, Value: {s}\n", .{entry.key_ptr.*, entry.value_ptr.*.value});
+    }
+
+    std.debug.print("--- Map 2---\n", .{});
+    it = mixedHashmap2.iterator();
+    while (it.next()) |entry| {
+        std.debug.print("Key: {s}, Value: {s}\n", .{entry.key_ptr.*, entry.value_ptr.*.value});
     }
 
     //Use a union find perhaps?
@@ -626,17 +697,28 @@ fn checkForReferense(node: *Node, targetNode: []u8) bool {
     }
     return true;
 }
-
+// maybe I have problem with hashmap
 fn propagateWord(node: *Node, message: []u8, hashMapOtherSide: std.HashMap([]const u8, *Node, std.hash_map.StringContext, 80), hashMapCurrSide: std.HashMap([]const u8, *Node, std.hash_map.StringContext, 80))!void{
     std.debug.print("---\n", .{});
     std.debug.print("started propagate\n", .{});
     std.debug.print("node {s}\n", .{node.value});
     std.debug.print("propagated: {s}\n", .{message});
+    std.debug.print("Neiboughrs inside: ", .{});
+    for(node.nodeList.items)|items|{
+        std.debug.print("{s} ", .{items});
+    }
+    std.debug.print("\n", .{});
+    
+    var it = hashMapOtherSide.iterator();
+    while (it.next()) |entry| {
+        std.debug.print("Key: {s}, Value: {s}\n", .{entry.key_ptr.*, entry.value_ptr.*.value});
+    }
+
     for (node.nodeList.items) |neighbours| {
         const node1 = hashMapOtherSide.get(neighbours);
         std.debug.print("we never get here\n", .{});
         if (node1)|neighbourNode| {
-            std.debug.print("Node {s} gave Neighbour {s}: {s}\n", .{node.value,neighbourNode.value,message});
+            std.debug.print("Node {s} gave Neighbour:{s} :{s}: {s}\n", .{node.value,neighbours,neighbourNode.value,message});
             if (std.mem.eql(u8, neighbourNode.word, message)) {
                 continue;
             }
