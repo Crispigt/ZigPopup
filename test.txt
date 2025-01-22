@@ -1,3 +1,7 @@
-2
-4
-5
+3
+how now brown <animal>
+<foo> now <color> cow
+who are you
+<a> <b> <a>
+<a> b
+c <a>
