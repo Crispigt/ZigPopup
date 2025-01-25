@@ -1,0 +1,19 @@
+9
+cat <b> <a> <b> rat
+<a> <b> word <c> <c>
+how now brown <animal>
+<foo> now <color> cow
+who are you
+<a> <b> <a>
+<a> b
+c <a>
+<a> <b> word <c> <c> <b>
+cat <b> <a> <b> rat <r>
+<a> <b> word <c> <c> <b> <q> <q> what <que> <master> <que> <master>
+cat <b> <a> <b> rat <r> <r> <l> what <que> master <master> <que>
+what <que1> <master> <que1> <master>
+what <que> master <master> <que>
+what <que> master <master> <que> 
+what <que1> <master> <que1> <master>
+<que> master <mister> <que> <mister> 
+<que1> <master> <que1> <master> mister

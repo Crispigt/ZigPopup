@@ -1,3 +1,0 @@
-1
-cat <b> <a> <b> rat
-<a> <b> word <c> <c>
