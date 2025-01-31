@@ -133,7 +133,7 @@ var memo: std.AutoHashMap(u64, i32) = std.AutoHashMap(u64, i32).init(allocator);
 
 fn makeKey(n: usize, currSum: i32) u64 {
     const n_as_u64 = @as(u64, n); // Convert `n` to u64
-    const currSum_as_u64: u64 =@intCast(currSum); // Bit-cast i32 to u64
+    const currSum_as_u64: u64 = @intCast(currSum); // Bit-cast i32 to u64
     return (n_as_u64 << 32) | currSum_as_u64;
 }
 

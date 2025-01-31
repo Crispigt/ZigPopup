@@ -29,24 +29,6 @@ fn readCharEndSpace(reader: anytype, buffer: []u8) !?[]const u8 {
     return line orelse null; // Handle the case where no more lines are available
 }
 
-/// Converts a `?[]const u8` string (if present) to an `i32`.
-/// Returns `0` if the input is `null`.
-///
-/// - Parameters:
-///   - `input`: an optional slice of bytes containing the numeric string
-///
-/// - Returns: `i32` parsed from the string, or `0` if input is `null`
-///
-/// - Throws: any error resulting from `std.fmt.parseInt` if parsing fails
-fn convertfuckingstringtoint(input: ?[]const u8) !i32 {
-    var ret: i32 = 0;
-    if (input) |value| {
-        const trimshit = std.mem.trim(u8, value, " \n\r");
-        ret = try std.fmt.parseInt(i32, trimshit, 10);
-        return ret;
-    }
-    return 0;
-}
 
 /// Splits multiple input lines by the specified `delimiter` and parses each token into `i32`.
 /// For each line in `input`, it will:
