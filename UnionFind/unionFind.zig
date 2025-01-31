@@ -29,10 +29,10 @@ pub fn UnionFind(comptime T: type) type {
         }
 
         pub fn deinit(self: *Self) void {
-            var it = self.nodes.valueIterator();
-            while (it.next()) |node| {
-                self.allocator.destroy(node.*);
-            }
+            // var it = self.nodes.valueIterator();
+            // while (it.next()) |node| {
+            //     self.allocator.destroy(node.*);
+            // }
             self.nodes.deinit();
         }
 
@@ -91,6 +91,10 @@ pub fn UnionFind(comptime T: type) type {
 }
 
 
+
+
+
+
 pub fn UnionFindArray(comptime T: type) type {
     return struct {
         const Self = @This();
@@ -102,7 +106,8 @@ pub fn UnionFindArray(comptime T: type) type {
 
         pub fn init(allocator: std.mem.Allocator, size: usize) !Self {
             const nodes = try allocator.alloc(NodePtr, size);
-            @memset(nodes, undefined);
+            //@memset(nodes, null); // Initialize with null
+
             return Self{
                 .allocator = allocator,
                 .nodes = nodes,
@@ -111,22 +116,21 @@ pub fn UnionFindArray(comptime T: type) type {
 
         pub fn deinit(self: *Self) void {
             for (self.nodes) |node| {
-                if (node != undefined) {
-                    self.allocator.destroy(node);
-                }
+                self.allocator.destroy(node);
             }
             self.allocator.free(self.nodes);
         }
 
         pub fn makeSet(self: *Self, value: T) !void {
             const index: usize = @intCast(value);
-            if (self.nodes[index] == undefined) {
-                const node = try self.allocator.create(NodeType);
-                node.value = value;
-                node.parent = node;
-                node.length = 0;
-                self.nodes[index] = node;
-            }
+            // std.debug.print("Added {d}\n", .{index});
+
+            const node = try self.allocator.create(NodeType);
+            node.value = value;
+            node.parent = node;
+            node.length = 0;
+            self.nodes[index] = node;
+            
         }
 
         pub fn unioN(self: *Self, a: T, b: T) !void {
@@ -154,12 +158,14 @@ pub fn UnionFindArray(comptime T: type) type {
             const index: usize = @intCast(value);
             if (index >= self.nodes.len) return error.OutOfBounds;
             var current = self.nodes[index];
-            std.debug.print("test\n", .{});
+            if (current == undefined) return error.NodeNotFound;
+            // std.debug.print("testing index: {d}\n", .{index});
             while (current.parent != current) {
-                std.debug.print("test2\n", .{});
+                // std.debug.print("test2\n", .{});
                 current.parent = current.parent.parent;
                 current = current.parent;
             }
+            
             return current;
         }
     };
@@ -257,7 +263,7 @@ pub fn parseAndRun(allocator: anytype, input: [][]u8) ![]bool {
 
 
 
-pub fn parseAndRunCombined(allocator: std.mem.Allocator, data: []const u8) ![]bool {
+pub fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []const u8) ![]bool {
 
     var splitter = std.mem.splitAny(u8, data, " \n");
 
@@ -269,12 +275,15 @@ pub fn parseAndRunCombined(allocator: std.mem.Allocator, data: []const u8) ![]bo
     var unionF = try UnionFindArray(i32).init(allocator, N);
     defer unionF.deinit();
     for (0..N) |value| {
+        // std.debug.print("{d}\n", .{value});
         try unionF.makeSet(@intCast(value));
     }
 
+    // std.debug.print("Here\n", .{});
+
     var result = std.ArrayList(bool).init(allocator);
     defer result.deinit();
-
+    
 
     // Process each query
     var q: usize = 0;
@@ -291,6 +300,46 @@ pub fn parseAndRunCombined(allocator: std.mem.Allocator, data: []const u8) ![]bo
         }
     }
 
+    return result.toOwnedSlice();
+}
+
+pub fn parseAndRunCombined(allocator: std.mem.Allocator, data: []const u8) ![]bool {
+
+    var splitter = std.mem.splitAny(u8, data, " \n");
+
+    // Parse N and Q
+    const N = try parseNextToken(usize, &splitter);
+    const Q = try parseNextToken(usize, &splitter);
+
+    // Initialize Union-Find structure
+    var unionF = UnionFind(i32).init(allocator);
+    defer unionF.deinit();
+    for (0..N) |value| {
+        // std.debug.print("{d}\n", .{value});
+        try unionF.makeSet(@intCast(value));
+    }
+
+    // std.debug.print("Here\n", .{});
+
+    var result = std.ArrayList(bool).init(allocator);
+    defer result.deinit();
+    
+
+    // Process each query
+    var q: usize = 0;
+    while (q < Q) : (q += 1) {
+        const op = try parseNextToken([]const u8, &splitter);
+        const a = try parseNextToken(i32, &splitter);
+        const b = try parseNextToken(i32, &splitter);
+        // std.debug.print("we are on", .{});
+        if (std.mem.eql(u8, op, "=")) {
+            try unionF.unioN(a, b);
+        } else {
+            const sameResult = try unionF.same(a, b);
+            try result.append(sameResult);
+        }
+    }
+    // std.debug.print("Why does it break", .{});
     return result.toOwnedSlice();
 }
 

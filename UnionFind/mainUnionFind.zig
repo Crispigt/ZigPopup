@@ -11,7 +11,6 @@ pub fn main() !void {
     const allocator = std.heap.page_allocator;
     var buffer: [1024*1024]u8 = undefined;
 
-    const start = try Instant.now();
 
     // const startRead = try Instant.now();
     const all_data = try unionF.readInput(allocator, stdin,);
@@ -27,20 +26,44 @@ pub fn main() !void {
     // const endToFloat = try Instant.now();
  
     // const startCover = try Instant.now();
+    // var start = try Instant.now();
 
-    const testing = try unionF.parseAndRunCombined(allocator,all_data );
+    // var testing = try unionF.parseAndRunCombined(allocator,all_data );
+    // defer allocator.free(testing);
+    // try unionF.printResults(testing);
+
+
+    // // const endCover = try Instant.now();
+
+    // var end = try Instant.now();
+
+    // const elapsed1: f64 = @floatFromInt(end.since(start));
+
+
+    // const start = try Instant.now();
+
+
+    const testing = try unionF.parseAndRunCombinedArray(allocator,all_data );
+    // std.debug.print("Does it break here", .{});
     defer allocator.free(testing);
+    // std.debug.print("wtf", .{}); 16182.146ms
     try unionF.printResults(testing);
 
-    // const endCover = try Instant.now();
 
-    const end = try Instant.now();
+    // // const endCover = try Instant.now();
+
+    // const end = try Instant.now();
 
 
-    const elapsed1: f64 = @floatFromInt(end.since(start));
-    std.debug.print("Time elapsed for parsing full is: {d:.3}ms\n", .{
-        elapsed1 / time.ns_per_ms,
-    });
+    // std.debug.print("Time elapsed for parsing full is: {d:.3}ms\n", .{
+    //     elapsed1 / time.ns_per_ms,
+    // });
+
+    // const elapsed2: f64 = @floatFromInt(end.since(start));
+    // std.debug.print("Time elapsed for parsing full is: {d:.3}ms\n", .{
+    //     elapsed2 / time.ns_per_ms,
+    // });
+
 
 
     // const elapsedRead: f64 = @floatFromInt(endRead.since(startRead));
