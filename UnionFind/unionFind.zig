@@ -151,9 +151,12 @@ pub fn UnionFindArray(comptime T: type) type {
         }
 
         fn findRoot(self: *Self, value: T) !NodePtr {
-            const uVal: usize = @intCast(value); 
-            var current = self.nodes[uVal];
+            const index: usize = @intCast(value);
+            if (index >= self.nodes.len) return error.OutOfBounds;
+            var current = self.nodes[index];
+            std.debug.print("test\n", .{});
             while (current.parent != current) {
+                std.debug.print("test2\n", .{});
                 current.parent = current.parent.parent;
                 current = current.parent;
             }
@@ -255,6 +258,7 @@ pub fn parseAndRun(allocator: anytype, input: [][]u8) ![]bool {
 
 
 pub fn parseAndRunCombined(allocator: std.mem.Allocator, data: []const u8) ![]bool {
+
     var splitter = std.mem.splitAny(u8, data, " \n");
 
     // Parse N and Q
@@ -271,30 +275,13 @@ pub fn parseAndRunCombined(allocator: std.mem.Allocator, data: []const u8) ![]bo
     var result = std.ArrayList(bool).init(allocator);
     defer result.deinit();
 
+
     // Process each query
     var q: usize = 0;
     while (q < Q) : (q += 1) {
         const op = try parseNextToken([]const u8, &splitter);
         const a = try parseNextToken(i32, &splitter);
         const b = try parseNextToken(i32, &splitter);
-
-        // Validate a and b
-        if (a < 0 or b < 0) {
-            if (std.mem.eql(u8, op, "?")) {
-                try result.append(false);
-            }
-            continue;
-        }
-
-        const a_usize = @as(usize, @intCast(a));
-        const b_usize = @as(usize, @intCast(b));
-
-        if (a_usize >= N or b_usize >= N) {
-            if (std.mem.eql(u8, op, "?")) {
-                try result.append(false);
-            }
-            continue;
-        }
 
         if (std.mem.eql(u8, op, "=")) {
             try unionF.unioN(a, b);
