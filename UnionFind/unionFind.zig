@@ -37,14 +37,16 @@ pub fn UnionFind(comptime T: type) type {
         }
 
         ///Create original sets
-        pub fn makeSet(self: *Self, value: T) !void {
-            if (!self.nodes.contains(value)) {
+        pub fn makeSet(self: *Self, value: T) !*Node(T) {
+            // if (!self.nodes.contains(value)) {
                 const node = try self.allocator.create(Node(T));
                 node.value = value;
                 node.parent = node; // Parent is self initially
                 node.length = 0;
                 try self.nodes.put(value, node);
-            }
+                return node;
+            // }
+
         }
 
         /// Indicate that set a and b are merged
@@ -78,36 +80,49 @@ pub fn UnionFind(comptime T: type) type {
         }
 
         fn findRoot(self: *Self, child_value: T) !*Node(T) {
-            const child = self.nodes.get(child_value) orelse return error.NotFound;
-            var current = child;
-            // Find root node, and compress path to flatten the tree
-            while (current.parent != current) {
-                current.parent = current.parent.parent;
-                current = current.parent;
+            const child = self.nodes.get(child_value);
+
+            if(child)|childAlive|{
+                var current = childAlive;
+                // Find root node, and compress path to flatten the tree
+                while (current.parent != current) {
+                    current.parent = current.parent.parent;
+                    current = current.parent;
+                }
+
+                return current;
+            }else {
+                const newNode = try self.makeSet(child_value);
+                return newNode;
             }
-            return current;
+
         }
     };
 }
 
 
-
-
-
+pub fn NodeArray(comptime T: type) type {
+    return struct {
+        parent: T,
+        rank: u32,
+    };
+}
 
 pub fn UnionFindArray(comptime T: type) type {
     return struct {
         const Self = @This();
-        const NodeType = Node(T);
-        const NodePtr = *NodeType;
+        const NodeType = T;
 
         allocator: std.mem.Allocator,
-        nodes: []NodePtr,
+        nodes: []NodeType,
 
         pub fn init(allocator: std.mem.Allocator, size: usize) !Self {
-            const nodes = try allocator.alloc(NodePtr, size);
-            //@memset(nodes, null); // Initialize with null
-
+            const nodes = try allocator.alloc(NodeType, size);
+            for (nodes, 0..) |*node, i| {
+                const val: T = std.math.cast(T, i).?;
+                node.parent = val;
+                node.rank = 0;
+            }
             return Self{
                 .allocator = allocator,
                 .nodes = nodes,
@@ -115,58 +130,37 @@ pub fn UnionFindArray(comptime T: type) type {
         }
 
         pub fn deinit(self: *Self) void {
-            for (self.nodes) |node| {
-                self.allocator.destroy(node);
-            }
             self.allocator.free(self.nodes);
         }
 
-        pub fn makeSet(self: *Self, value: T) !void {
-            const index: usize = @intCast(value);
-            // std.debug.print("Added {d}\n", .{index});
-
-            const node = try self.allocator.create(NodeType);
-            node.value = value;
-            node.parent = node;
-            node.length = 0;
-            self.nodes[index] = node;
-            
-        }
-
-        pub fn unioN(self: *Self, a: T, b: T) !void {
-            const root_a = try self.findRoot(a);
-            const root_b = try self.findRoot(b);
+        pub fn unite(self: *Self, a: T, b: T) void {
+            const root_a = self.find(a);
+            const root_b = self.find(b);
             if (root_a == root_b) return;
 
-            if (root_a.length > root_b.length) {
-                root_b.parent = root_a;
-            } else if (root_a.length < root_b.length) {
-                root_a.parent = root_b;
+            if (self.nodes[root_a].rank > self.nodes[root_b].rank) {
+                self.nodes[root_b].parent = root_a;
+            } else if (self.nodes[root_a].rank < self.nodes[root_b].rank) {
+                self.nodes[root_a].parent = root_b;
             } else {
-                root_b.parent = root_a;
-                root_a.length += 1;
+                self.nodes[root_b].parent = root_a;
+                self.nodes[root_a].rank += 1;
             }
         }
 
-        pub fn same(self: *Self, a: T, b: T) !bool {
-            const root_a = try self.findRoot(a);
-            const root_b = try self.findRoot(b);
-            return root_a == root_b;
+        pub fn same(self: *Self, a: T, b: T) bool {
+            return self.find(a) == self.find(b);
         }
 
-        fn findRoot(self: *Self, value: T) !NodePtr {
-            const index: usize = @intCast(value);
-            if (index >= self.nodes.len) return error.OutOfBounds;
-            var current = self.nodes[index];
-            if (current == undefined) return error.NodeNotFound;
-            // std.debug.print("testing index: {d}\n", .{index});
-            while (current.parent != current) {
-                // std.debug.print("test2\n", .{});
-                current.parent = current.parent.parent;
-                current = current.parent;
+        pub fn find(self: *Self, value: T) T {
+            const index = @as(usize, @intCast(value));
+            var node = &self.nodes[index];
+            if (node.parent != value) {
+                const root = self.find(node.parent);
+                node.parent = root; 
+                return root;
             }
-            
-            return current;
+            return value;
         }
     };
 }
@@ -272,12 +266,9 @@ pub fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []const u8) 
     const Q = try parseNextToken(usize, &splitter);
 
     // Initialize Union-Find structure
-    var unionF = try UnionFindArray(i32).init(allocator, N);
+    var unionF = try UnionFindArray(u32).init(allocator, N);
     defer unionF.deinit();
-    for (0..N) |value| {
-        // std.debug.print("{d}\n", .{value});
-        try unionF.makeSet(@intCast(value));
-    }
+
 
     // std.debug.print("Here\n", .{});
 
@@ -308,16 +299,16 @@ pub fn parseAndRunCombined(allocator: std.mem.Allocator, data: []const u8) ![]bo
     var splitter = std.mem.splitAny(u8, data, " \n");
 
     // Parse N and Q
-    const N = try parseNextToken(usize, &splitter);
+    _ = try parseNextToken(usize, &splitter);
     const Q = try parseNextToken(usize, &splitter);
 
     // Initialize Union-Find structure
     var unionF = UnionFind(i32).init(allocator);
     defer unionF.deinit();
-    for (0..N) |value| {
-        // std.debug.print("{d}\n", .{value});
-        try unionF.makeSet(@intCast(value));
-    }
+    // for (0..N) |value| {
+    //     // std.debug.print("{d}\n", .{value});
+    //     try unionF.makeSet(@intCast(value));
+    // }
 
     // std.debug.print("Here\n", .{});
 
@@ -366,4 +357,20 @@ pub fn printResults(res: []bool) !void {
             try stdout.writeAll("no\n");
         }
     }
+}
+
+
+pub fn printResults2(allocator: anytype,res: []bool) !void {
+   
+    const stdout = std.io.getStdOut();
+    var resultPrint = std.ArrayList(u8).init(allocator);
+    for (res) |value| {
+        if (value) {
+            try resultPrint.appendSlice("yes\n");
+        } else {
+            try resultPrint.appendSlice("no\n");
+        }
+    }
+    const resultPrint1 = try resultPrint.toOwnedSlice();
+    try stdout.writeAll(resultPrint1);
 }
