@@ -7,7 +7,7 @@ pub fn Node(comptime T: type) type {
         pub const Self = @This();
         value: T,
         parent: *Self,
-        length: u32 = 0, 
+        length: u32 = 0,
     };
 }
 
@@ -39,23 +39,23 @@ pub fn UnionFind(comptime T: type) type {
         ///Create original sets
         pub fn makeSet(self: *Self, value: T) !*Node(T) {
             // if (!self.nodes.contains(value)) {
-                const node = try self.allocator.create(Node(T));
-                node.value = value;
-                node.parent = node; // Parent is self initially
-                node.length = 0;
-                try self.nodes.put(value, node);
-                return node;
+            const node = try self.allocator.create(Node(T));
+            node.value = value;
+            node.parent = node; // Parent is self initially
+            node.length = 0;
+            try self.nodes.put(value, node);
+            return node;
             // }
 
         }
 
         /// Indicate that set a and b are merged
-        /// 
+        ///
         /// PS. union is special word in zig it seems like
         pub fn unioN(self: *Self, a: T, b: T) !void {
             const root_a = try self.findRoot(a);
             const root_b = try self.findRoot(b);
-            
+
             // Already united
             if (root_a == root_b) return;
 
@@ -71,8 +71,8 @@ pub fn UnionFind(comptime T: type) type {
         }
 
         /// Checks if a and b are in same set
-        /// 
-        /// 
+        ///
+        ///
         pub fn same(self: *Self, a: T, b: T) !bool {
             const root_a = try self.findRoot(a);
             const root_b = try self.findRoot(b);
@@ -82,7 +82,7 @@ pub fn UnionFind(comptime T: type) type {
         fn findRoot(self: *Self, child_value: T) !*Node(T) {
             const child = self.nodes.get(child_value);
 
-            if(child)|childAlive|{
+            if (child) |childAlive| {
                 var current = childAlive;
                 // Find root node, and compress path to flatten the tree
                 while (current.parent != current) {
@@ -91,15 +91,13 @@ pub fn UnionFind(comptime T: type) type {
                 }
 
                 return current;
-            }else {
+            } else {
                 const newNode = try self.makeSet(child_value);
                 return newNode;
             }
-
         }
     };
 }
-
 
 pub fn NodeArray(comptime T: type) type {
     return struct {
@@ -111,7 +109,7 @@ pub fn NodeArray(comptime T: type) type {
 pub fn UnionFindArray(comptime T: type) type {
     return struct {
         const Self = @This();
-        const NodeType = T;
+        const NodeType = NodeArray(T);
 
         allocator: std.mem.Allocator,
         nodes: []NodeType,
@@ -133,7 +131,7 @@ pub fn UnionFindArray(comptime T: type) type {
             self.allocator.free(self.nodes);
         }
 
-        pub fn unite(self: *Self, a: T, b: T) void {
+        pub fn unionN(self: *Self, a: T, b: T) void {
             const root_a = self.find(a);
             const root_b = self.find(b);
             if (root_a == root_b) return;
@@ -157,14 +155,13 @@ pub fn UnionFindArray(comptime T: type) type {
             var node = &self.nodes[index];
             if (node.parent != value) {
                 const root = self.find(node.parent);
-                node.parent = root; 
+                node.parent = root;
                 return root;
             }
             return value;
         }
     };
 }
-
 
 //Need to make a good find function to know if a b are in the same set
 //This is needed for both same and for union since we are supposed to add
@@ -180,19 +177,17 @@ pub fn UnionFindArray(comptime T: type) type {
 
 //Also need to make a parser that can build the sets
 //Base set is fully disjunct, so each will just be a number
-//Probably easiest to keep track of all of them in an array 
+//Probably easiest to keep track of all of them in an array
 //or maybe a hashmap actually if we want to keep track of something else than numbers
 
 // = is a and b are joined
 // ? query if a and b are in the same set
 
-
 // Should I keep track of size somehow, add the smaller tree to the larger ones root so somehow balance it
 
 // Maybe keep track of depth somehow for example everytime we add a new node through union we add one to the previous depth
 // Then if depth goes over a certain threshold we find root and add parts of the larger branch to the root
-// For example lets say we have depth 16, we go up to depth 8 and detach and add this to root instead, thereby halving our depth 
-
+// For example lets say we have depth 16, we go up to depth 8 and detach and add this to root instead, thereby halving our depth
 
 /// Reads entire input into a buffer without size restrictions.
 pub fn readInput(allocator: std.mem.Allocator, reader: anytype) ![]u8 {
@@ -203,7 +198,7 @@ pub fn readInput(allocator: std.mem.Allocator, reader: anytype) ![]u8 {
 pub fn parseTokens(comptime T: type, allocator: std.mem.Allocator, data: []const u8) ![]T {
     var tokens = std.ArrayList(T).init(allocator);
     var splitter = std.mem.splitAny(u8, data, " \n");
-    
+
     while (splitter.next()) |token| {
         if (token.len == 0) continue;
 
@@ -212,12 +207,11 @@ pub fn parseTokens(comptime T: type, allocator: std.mem.Allocator, data: []const
 
         try tokens.append(owned_token);
     }
-    
+
     return tokens.toOwnedSlice();
 }
 
 pub fn parseAndRun(allocator: anytype, input: [][]u8) ![]bool {
-
     const N = try std.fmt.parseInt(usize, input[0], 10);
     const Q = try std.fmt.parseInt(usize, input[1], 10);
 
@@ -237,14 +231,14 @@ pub fn parseAndRun(allocator: anytype, input: [][]u8) ![]bool {
     var i: usize = 2;
     var a: i32 = 0;
     var b: i32 = 0;
-    while (i < Q*3) {
-        a = try std.fmt.parseInt(i32, input[i+1], 10);
-        b = try std.fmt.parseInt(i32, input[i+2], 10);
-        // std.debug.print("Now we have on {d}: {d}, {d}\n", .{i,a,b});        
-        if (std.mem.eql(u8,input[i] , "=") ) {
+    while (i < Q * 3) {
+        a = try std.fmt.parseInt(i32, input[i + 1], 10);
+        b = try std.fmt.parseInt(i32, input[i + 2], 10);
+        // std.debug.print("Now we have on {d}: {d}, {d}\n", .{i,a,b});
+        if (std.mem.eql(u8, input[i], "=")) {
             try unionF.unioN(a, b);
             // std.debug.print("union: {d}, {d}\n", .{a,b});
-        }else{
+        } else {
             try result.append(try unionF.same(a, b));
             // std.debug.print("same: {d}, {d}\n", .{a,b});
         }
@@ -253,12 +247,7 @@ pub fn parseAndRun(allocator: anytype, input: [][]u8) ![]bool {
     return result.toOwnedSlice();
 }
 
-
-
-
-
 pub fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []const u8) ![]bool {
-
     var splitter = std.mem.splitAny(u8, data, " \n");
 
     // Parse N and Q
@@ -269,24 +258,22 @@ pub fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []const u8) 
     var unionF = try UnionFindArray(u32).init(allocator, N);
     defer unionF.deinit();
 
-
     // std.debug.print("Here\n", .{});
 
     var result = std.ArrayList(bool).init(allocator);
     defer result.deinit();
-    
 
     // Process each query
     var q: usize = 0;
     while (q < Q) : (q += 1) {
         const op = try parseNextToken([]const u8, &splitter);
-        const a = try parseNextToken(i32, &splitter);
-        const b = try parseNextToken(i32, &splitter);
+        const a = try parseNextToken(u32, &splitter);
+        const b = try parseNextToken(u32, &splitter);
 
         if (std.mem.eql(u8, op, "=")) {
-            try unionF.unioN(a, b);
+            unionF.unionN(a, b);
         } else {
-            const sameResult = try unionF.same(a, b);
+            const sameResult = unionF.same(a, b);
             try result.append(sameResult);
         }
     }
@@ -295,7 +282,6 @@ pub fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []const u8) 
 }
 
 pub fn parseAndRunCombined(allocator: std.mem.Allocator, data: []const u8) ![]bool {
-
     var splitter = std.mem.splitAny(u8, data, " \n");
 
     // Parse N and Q
@@ -314,7 +300,6 @@ pub fn parseAndRunCombined(allocator: std.mem.Allocator, data: []const u8) ![]bo
 
     var result = std.ArrayList(bool).init(allocator);
     defer result.deinit();
-    
 
     // Process each query
     var q: usize = 0;
@@ -346,9 +331,7 @@ fn parseNextToken(comptime T: type, splitter: anytype) !T {
     return error.UnexpectedEndOfInput;
 }
 
-
 pub fn printResults(res: []bool) !void {
-
     const stdout = std.io.getStdOut();
     for (res) |value| {
         if (value) {
@@ -359,9 +342,7 @@ pub fn printResults(res: []bool) !void {
     }
 }
 
-
-pub fn printResults2(allocator: anytype,res: []bool) !void {
-   
+pub fn printResults2(allocator: anytype, res: []bool) !void {
     const stdout = std.io.getStdOut();
     var resultPrint = std.ArrayList(u8).init(allocator);
     for (res) |value| {
