@@ -75,10 +75,14 @@ fn parseNextToken(comptime T: type, splitter: anytype) !T {
     return error.UnexpectedEndOfInput;
 }
 
-pub fn printResults(res: []i64) !void {
+pub fn printResults(res: []usize) !void {
     var stdout = std.io.getStdOut();
     var buffered = std.io.bufferedWriter(stdout.writer());
     const writer = buffered.writer();
+    
+    if (res.len == 0) {
+        try writer.print("Error\n", .{});
+    }
 
     for (res) |value| {
         try writer.print("{d}\n", .{value});
@@ -89,8 +93,8 @@ pub fn printResults(res: []i64) !void {
 
 fn compare(comptime T: type) type {
     return struct {
-        fn compareMinHeap(_: void, a: T, b: T) bool {
-            return a < b;
+        fn compareMinHeap(_: void, a: T, b: T) std.math.Order {
+            return std.math.order(a, b);
         }
     };
 }
@@ -99,20 +103,66 @@ fn parseAndRunCombinedArray(comptime T: type, data: []u8, allocator: std.mem.All
     var splitter = std.mem.splitAny(u8, data, " \n");
 
     const root = try std.fmt.parseInt(T, splitter.next().?, 10) + 1;
-
-    const freq = try allocator.alloc(T, root + 1); // maybe need + 1 because all values will be from 1
+    // std.debug.print("this is root: {d}\n", .{root});
+    const freq = try allocator.alloc(T, root); // maybe need + 1 because all values will be from 1
+    const list = try allocator.alloc(T, root-1); // maybe need + 1 because all values will be from 1
     defer allocator.free(freq);
     @memset(freq, 1);
-
-    var totFreq = root;
+    @memset(list, 0);
+    var indx: usize = 0;
     while (splitter.next()) |token| {
-        const value = try std.fmt.parseInt(T, token, 10);
+        if (std.mem.eql(u8,token, "")) {
+            continue;
+        }
+        const value = try std.fmt.parseInt(usize, token, 10)-1;
+        if (indx == root-2 and value+1 != root) {
+            // std.debug.print("last elm {d}\n", .{value});
+            return &.{};
+        }
+        // std.debug.print("before add {d}\n", .{freq[value]});
         freq[value] += 1;
-        totFreq += 1;
+        // std.debug.print("after add {d} to {d}\n", .{freq[value], value});
+        list[indx] = value;
+        // std.debug.print("when added {d} to index {d}\n", .{value, indx});
+        indx += 1;
     }
     // We can check afterwards if root also had atleast one vertice
 
-    var minHeap = std.PriorityQueue(u32, void, compare(T).compareMinHeap()).init(allocator, {});
+    var minHeap = std.PriorityQueue(usize, void, compare(T).compareMinHeap).init(allocator, {});
+    defer minHeap.deinit();
+    indx =0;
+    // std.debug.print("Freq---\n", .{});
+    // for (freq) |value| {
+    //     // std.debug.print("{d}\n", .{value});
+    // }
+    // std.debug.print("List---\n", .{});
+    // for (list) |value| {
+    //     std.debug.print("{d}\n", .{value});
+    // }
+
+    for (freq) |value| {
+        if (value == 1 and indx != root) {
+            try minHeap.add(indx);
+            // std.debug.print("added to heap: {d} ", .{indx});
+        }
+        indx +=1;
+    }
+    // std.debug.print("\n", .{});
+    for (list, 0..) |value, index| {
+        if (index == root-1) {
+            continue;
+        }
+        // std.debug.print("{d}\n", .{value});
+        freq[value] -= 1;
+        const minLeaf = minHeap.remove();
+        // std.debug.print("min Leaf: {d}\n", .{minLeaf+1});
+        list[index] = minLeaf + 1; // We make list into the result
+        if (freq[value] == 1) {
+            try minHeap.add(value);
+            // std.debug.print("adde3d minheap: {d}\n", .{value});
+        }
+    }
+    return list;
 }
 
 pub fn main() !void {
@@ -127,11 +177,11 @@ pub fn main() !void {
     );
     defer allocator.free(all_data);
 
-    const testing = try parseAndRunCombinedArray(i64, allocator, all_data);
+    const testing = try parseAndRunCombinedArray(usize, all_data,allocator,);
 
     defer allocator.free(testing);
-
-    try fenwick.printResults(testing);
+    // std.debug.print("this is res: \n", .{});
+    try printResults(testing);
 
     buffer[1] = '1';
 }
