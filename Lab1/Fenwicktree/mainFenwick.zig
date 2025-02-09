@@ -1,9 +1,9 @@
 const std = @import("std");
-const unionF = @import("unionFind.zig");
+const fenwick = @import("fenwickTree.zig");
 
-// const time = std.time;
-// const Instant = time.Instant;
-// const Timer = time.Timer;
+const time = std.time;
+const Instant = time.Instant;
+const Timer = time.Timer;
 
 
 pub fn main() !void {
@@ -13,7 +13,7 @@ pub fn main() !void {
 
 
     // const startRead = try Instant.now();
-    const all_data = try unionF.readInput(allocator, stdin,);
+    const all_data = try fenwick.readInput(allocator, stdin,);
     defer allocator.free(all_data);
 
     // const endRead = try Instant.now();
@@ -42,13 +42,13 @@ pub fn main() !void {
 
     // const start = try Instant.now();
 
-    const testing = try unionF.parseAndRunCombinedArray(allocator,all_data );
+    const testing = try fenwick.parseAndRunCombinedArray(i64,allocator,all_data );
     //const testing = try unionF.parseAndRunCombinedArray(allocator,all_data );
     // std.debug.print("Does it break here", .{});
     defer allocator.free(testing);
     // std.debug.print("wtf", .{}); 16182.146ms
     // try unionF.printResults( testing);
-    try unionF.printResults2(testing);
+    try fenwick.printResults(testing);
 
 
     // // const endCover = try Instant.now();

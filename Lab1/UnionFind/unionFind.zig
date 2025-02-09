@@ -156,16 +156,16 @@ fn parseNextToken(comptime T: type, splitter: anytype) !T {
 }
 
 /// Print all results.
-pub fn printResults2(res: []bool) !void {
-    var stdout = std.io.getStdOut();
-    var buffered = std.io.bufferedWriter(stdout.writer());
-    const writer = buffered.writer();
+pub fn printResults2(allocator: anytype, res: []bool) !void {
+    const stdout = std.io.getStdOut();
+    var resultPrint = std.ArrayList(u8).init(allocator);
     for (res) |value| {
         if (value) {
-            try writer.print("yes\n", .{});
+            try resultPrint.appendSlice("yes\n");
         } else {
-            try writer.print("no\n", .{});
+            try resultPrint.appendSlice("no\n");
         }
     }
-    try buffered.flush();
+    const resultPrint1 = try resultPrint.toOwnedSlice();
+    try stdout.writeAll(resultPrint1);
 }

@@ -1,9 +1,9 @@
 const std = @import("std");
 const unionF = @import("unionFind.zig");
 
-// const time = std.time;
-// const Instant = time.Instant;
-// const Timer = time.Timer;
+const time = std.time;
+const Instant = time.Instant;
+const Timer = time.Timer;
 
 
 pub fn main() !void {
@@ -40,7 +40,7 @@ pub fn main() !void {
     // const elapsed1: f64 = @floatFromInt(end.since(start));
 
 
-    // const start = try Instant.now();
+    const start = try Instant.now();
 
     const testing = try unionF.parseAndRunCombinedArray(allocator,all_data );
     //const testing = try unionF.parseAndRunCombinedArray(allocator,all_data );
@@ -48,22 +48,22 @@ pub fn main() !void {
     defer allocator.free(testing);
     // std.debug.print("wtf", .{}); 16182.146ms
     // try unionF.printResults( testing);
-    try unionF.printResults2(testing);
+    try unionF.printResults2(allocator, testing);
 
 
     // // const endCover = try Instant.now();
 
-    // const end = try Instant.now();
+    const end = try Instant.now();
 
 
     // std.debug.print("Time elapsed for parsing full is: {d:.3}ms\n", .{
     //     elapsed1 / time.ns_per_ms,
     // });
 
-    // const elapsed2: f64 = @floatFromInt(end.since(start));
-    // std.debug.print("Time elapsed for parsing full is: {d:.3}ms\n", .{
-    //     elapsed2 / time.ns_per_ms,
-    // });
+    const elapsed2: f64 = @floatFromInt(end.since(start));
+    std.debug.print("Time elapsed for parsing full is: {d:.3}ms\n", .{
+        elapsed2 / time.ns_per_ms,
+    });
 
 
 
