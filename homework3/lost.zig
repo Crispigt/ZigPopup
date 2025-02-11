@@ -25,7 +25,6 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
     const N = try std.fmt.parseInt(usize, splitter.next().?, 10);
     const M = try std.fmt.parseInt(usize, splitter.next().?, 10);
 
-    // const end = N-1;
     var nodes = try allocator.alloc(std.ArrayList(usize), N);
     defer allocator.free(nodes);
     for (nodes,0..) |_, i| {
@@ -38,10 +37,10 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
         }
         const K = try std.fmt.parseInt(usize, token, 10);
         const L = try std.fmt.parseInt(usize, splitter.next().?, 10);
-        if (L > K) {
-            try nodes[K].append(L);
-        }
+        std.debug.print("{d},{d}\n", .{K,L});
+        try nodes[K].append(L);
         try nodes[L].append(K);
+        
     }
     const memo = try allocator.alloc(f64, N);
     defer allocator.free(memo);
@@ -51,27 +50,40 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
     @memset(visit, false);
 
     //BFS to find expected length first
-    var fifo = std.fifo.LinearFifo(usize, .Dynamic).init(allocator);
-    defer fifo.deinit();
-    try fifo.writeItem(N-1);
-    var layer: f64 = 0;
+    var queue = std.TailQueue(usize){};
+    const node1 = try allocator.create(std.TailQueue(usize).Node);
+    node1.data = N-1;
+    queue.append(node1);
+    var layer: f64 = 1;
     var calc1: f64 = 0;
-    while (fifo.readItem()) |cur| {
+    memo[N-1] = 0;
+
+    while (queue.len != 0) {
+        const cur = queue.popFirst().?.data; 
         if(visit[cur] == true) continue;
         visit[cur] = true;
 
         const neibours = nodes[cur].items;
-
+        std.debug.print("Curr node: {d}, neigbours: {any}\n", .{cur, neibours});
         for (neibours) |value| {
             if (memo[value] == -1) {
                 const len2: f64 = @floatFromInt(nodes[value].items.len);
                 memo[value] = layer * 1/len2;
+                std.debug.print("node {d} weight: {d}, \ncalc = {d}\n", .{value, memo[value], calc1});
+
                 calc1 += memo[value];
             } else {
+                std.debug.print("node {d} weight: {d}, calc = {d}\n", .{value, memo[value], calc1});
                 calc1 += memo[value];
             }
-            try fifo.writeItem(value);
+            std.debug.print("new calc = {d}\n", .{calc1});
+
+            const neNode = try allocator.create(std.TailQueue(usize).Node);
+            neNode.data = value;
+            queue.append(neNode);
         }
+        std.debug.print("----\n", .{});
+
         layer += 1;
     }
     std.debug.print("calc1: {d}\n", .{calc1});
@@ -97,7 +109,7 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
         std.debug.print("{any}\n", .{value.items});
     }
 
-    std.debug.print("{d},{d}\n", .{N, M});
+    std.debug.print("n {d},m {d}\n", .{N, M});
     // std.debug.print("{d}\n", .{te});
 }
 
