@@ -23,7 +23,7 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
     var splitter = std.mem.splitAny(u8, data, " \n");
 
     const N = try std.fmt.parseInt(usize, splitter.next().?, 10);
-    const M = try std.fmt.parseInt(usize, splitter.next().?, 10);
+    _ = try std.fmt.parseInt(usize, splitter.next().?, 10);
 
     var nodes = try allocator.alloc(std.ArrayList(usize), N);
     defer allocator.free(nodes);
@@ -54,8 +54,13 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
     const node1 = try allocator.create(std.TailQueue(usize).Node);
     node1.data = N-1;
     queue.append(node1);
-    var layer: f64 = 1;
-    var calc1: f64 = 0;
+    var layer: f64 = 2;
+    const cacl1 = try allocator.alloc(f64, N);
+    defer allocator.free(cacl1);
+    @memset(cacl1, 0);
+
+    // const lenth: f64 = @floatFromInt(nodes[N-1].items.len);
+    // memo[N-1] = 1 * 1/lenth;
     memo[N-1] = 0;
 
     while (queue.len != 0) {
@@ -68,15 +73,16 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
         for (neibours) |value| {
             if (memo[value] == -1) {
                 const len2: f64 = @floatFromInt(nodes[value].items.len);
-                memo[value] = layer * 1/len2;
-                std.debug.print("node {d} weight: {d}, \ncalc = {d}\n", .{value, memo[value], calc1});
+                memo[value] = layer * (len2-1)/len2;
+                std.debug.print("node {d}, weight: {d}, len {d} \n", .{value, memo[value], len2});
 
-                calc1 += memo[value];
+                cacl1[cur] += memo[value];
             } else {
-                std.debug.print("node {d} weight: {d}, calc = {d}\n", .{value, memo[value], calc1});
-                calc1 += memo[value];
+                std.debug.print("node {d}, weight: {d} \n", .{value, memo[value]});
+                cacl1[cur] += memo[value];
             }
-            std.debug.print("new calc = {d}\n", .{calc1});
+            
+            std.debug.print("new calc = {d}\n", .{cacl1[cur]});
 
             const neNode = try allocator.create(std.TailQueue(usize).Node);
             neNode.data = value;
@@ -86,30 +92,18 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
 
         layer += 1;
     }
-    std.debug.print("calc1: {d}\n", .{calc1});
-
-    //For each node I want to calc all their neighbours  
-    // var calc: f64 = 0;
-    // for (nodes) |node| {
-    //     for (node.items) |neighbour| {
-    //         if (memo[neighbour] != -1) {
-    //             calc += memo[neighbour];
-    //         } else {
-
-    //         }
-    //     }
-    // }
-
-    
-
-
+    std.debug.print("calc1: {any}\n", .{cacl1 });
+    var r: f64 = 0;
+    for (cacl1, 0..) |value, i| {
+        std.debug.print("sum of {d}'s neigbours is {d}\n", .{i,value});
+        r += value;
+    }
+    const endfloat: f64 = @floatFromInt(N-1);
+    std.debug.print("r: {d}\n", .{r/endfloat});
     // const te = try goThrough(nodes, N-1, visited, 0);
 
-    for (nodes) |value| {
-        std.debug.print("{any}\n", .{value.items});
-    }
+    std.debug.print("memo: {any}\n", .{memo});
 
-    std.debug.print("n {d},m {d}\n", .{N, M});
     // std.debug.print("{d}\n", .{te});
 }
 

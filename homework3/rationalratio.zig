@@ -22,14 +22,34 @@ pub fn printResults(res: bool) !void {
 fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
     var splitter = std.mem.splitAny(u8, data, " \n");
 
-    const n = try std.fmt.parseFloat(f64, splitter.next().?);
+    const n = splitter.next().?;
+    const count = try std.fmt.parseInt(usize, splitter.next().?, 10);
 
-    while (splitter.next()) |token| {
-        if (std.mem.eql(u8,token, "")) {
-            continue;
-        }
+
+    const realNum = try makeF64(allocator,n, count);
+
+    std.debug.print("realnum: {d}\n", .{realNum});
+
+
+    // std.debug.print("res: {d}\n", .{res});
+
+    std.debug.print("n:{s}\n", .{n});
+}
+
+fn makeF64(allocator: std.mem.Allocator,n: []const u8, count: usize) !f64 {
+    var res = std.ArrayList(u8).init(allocator);
+    defer res.deinit();
+    try res.appendSlice(n);
+    const repeat = n[n.len-count..];
+    std.debug.print("repeat: {s}\n", .{repeat});
+    while (res.items.len + repeat.len < 16) {
+        try res.appendSlice(repeat);
     }
-    std.debug.print("{d}\n", .{n});
+    const resOwned = try res.toOwnedSlice();
+    std.debug.print("{s}\n", .{resOwned});
+    defer allocator.free(resOwned);
+    const resAsFloat: f64 = try std.fmt.parseFloat(f64, resOwned); 
+    return resAsFloat;
 }
 
 pub fn main() !void {
@@ -44,7 +64,7 @@ pub fn main() !void {
     );
     defer allocator.free(all_data);
 
-    try parseAndRunCombinedArray(allocator,all_data);
+    try parseAndRunCombinedArray(allocator, all_data);
 
     // std.debug.print("this is res: \n", .{});
     // try printResults(testing);

@@ -112,7 +112,7 @@ fn calc3(n: usize, splitter: *std.mem.SplitIterator(u8, .any), allocator: anytyp
     if (n == 1) {
         return .{ .nom = allR[0], .denom = 1 };
     }
-
+    
     var i: usize = n-1;
     var acc: f64 = 0;
     var denom: f64 = 1;
