@@ -33,9 +33,12 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
 }
 
 pub fn main() !void {
-    const stdin = std.io.getStdIn();
+    const stdin = std.io.getStdIn().reader();
     const allocator = std.heap.page_allocator;
-    var buffer: [1024 * 1024]u8 = undefined;
+
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    defer arena.deinit();
+    const aa = arena.allocator();
 
     // const startRead = try Instant.now();
     const all_data = try readInput(
@@ -44,7 +47,7 @@ pub fn main() !void {
     );
     defer allocator.free(all_data);
 
-    try parseAndRunCombinedArray(allocator,all_data);
+    try parseAndRunCombinedArray(aa,all_data);
 
     // std.debug.print("this is res: \n", .{});
     // try printResults(testing);
