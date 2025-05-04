@@ -72,7 +72,6 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
     var found = false;
 
     while (true) {
-
         const forwSize = queueForward.readableLength();
         if (forwSize > 0) {
             for (0..forwSize) |_| {
