@@ -21,6 +21,7 @@ pub fn main() !void {
     try parseAndRunCombinedArray(aa, all_data);
 }
 
+
 fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
     var stdout = std.io.getStdOut();
     var buffered = std.io.bufferedWriter(stdout.writer());
@@ -116,7 +117,7 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
                 for (0..4) |col| {
                     const su = shiftColumnUp(current.state, col);
                     const sd = shiftColumnDown(current.state, col);
-
+                    
                     if (!forwardVisited.contains(su)) {
                         try forwardVisited.put(su, current.depth + 1);
                         try queueForward.writeItem(.{ .state = su, .depth = current.depth + 1 });
@@ -226,6 +227,7 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
     try writer.print("{d}\n", .{ans});
     try buffered.flush();
 }
+
 
 fn shiftRowLeft(state: u32, row: usize) u32 {
     const rowNum = @as(u5, @intCast(row * 8));
