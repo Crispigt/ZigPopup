@@ -190,6 +190,4 @@ pub fn main() !void {
 
     // std.debug.print("this is res: \n", .{});
     // try printResults(testing);
-
-    buffer[1] = '1';
 }

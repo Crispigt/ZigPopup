@@ -216,9 +216,6 @@ pub fn main() !void {
     // });
     // std.debug.print("Here it is: \n", .{});
 
-
-    buffer[1] = '1';
-
     // for (intArray.items) |s| {
     //     for (s) |d| {
     //         std.debug.print("{d} ", .{d});

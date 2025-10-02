@@ -7,7 +7,7 @@ const Timer = time.Timer;
 fn solveSubSet(nList: std.ArrayList([]i32), allocator: anytype) !?[]i32 {
     const n = nList.items[0][0];
     const t = nList.items[0][1];    
-    std.debug.print("n: {d}, t: {d}\n", .{n,t});
+    std.debug.print("n: {d}, t: {d}\n", .{n, t});
     var layer1: i32 = 0;
     var layer2: i32 = 0;
     for (nList.items) |v| {
@@ -60,10 +60,6 @@ pub fn main() !void {
     } else {
         std.debug.print("No match found\n", .{});
     }
-
-
-
-    buffer[1] = '1';
 
     // for (intArray.items) |s| {
     //     for (s) |d| {

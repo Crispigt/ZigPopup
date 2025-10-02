@@ -104,7 +104,7 @@ pub fn helpMeSolve(line1: []u8, line2: []u8, allocator: anytype) ![]const u8 {
 
     const result = try res.toOwnedSlice();
     const result2 =  try res2.toOwnedSlice();
-    if (std.mem.eql(u8,result,result2)) {
+    if (std.mem.eql(u8, result, result2)) {
         return result;
     }
     return "-";

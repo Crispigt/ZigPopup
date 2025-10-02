@@ -32,12 +32,12 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
     }
 
     while (splitter.next()) |token| {
-        if (std.mem.eql(u8,token, "")) {
+        if (std.mem.eql(u8, token, "")) {
             continue;
         }
         const K = try std.fmt.parseInt(usize, token, 10);
         const L = try std.fmt.parseInt(usize, splitter.next().?, 10);
-        std.debug.print("{d},{d}\n", .{K,L});
+        std.debug.print("{d},{d}\n", .{K, L});
         try nodes[K].append(L);
         try nodes[L].append(K);
         
@@ -169,6 +169,4 @@ pub fn main() !void {
 
     // std.debug.print("this is res: \n", .{});
     // try printResults(testing);
-
-    buffer[1] = '1';
 }

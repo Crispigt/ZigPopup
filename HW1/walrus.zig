@@ -230,9 +230,6 @@ pub fn main() !void {
     const stdout = std.io.getStdOut();
     try stdout.writer().print("{d}\n", .{ClosestNum});
 
-
-    buffer[1] = '1';
-
     // for (intArray.items) |s| {
     //     for (s) |d| {
     //         std.debug.print("{d} ", .{d});

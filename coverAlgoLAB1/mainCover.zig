@@ -64,7 +64,4 @@ pub fn main() !void {
     // std.debug.print("Time elapsed for running algo is: {d:.3}ms\n", .{
     //     elapsed2 / time.ns_per_ms,
     // });
-
-
-    buffer[1] = '1';
 }   

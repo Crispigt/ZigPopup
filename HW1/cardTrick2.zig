@@ -265,12 +265,6 @@ pub fn main() !void {
     //     elapsed1 / time.ns_per_ms,
     // });
 
-
-
-
-
-    buffer[1] = '1';
-
     // for (intArray.items) |s| {
     //     for (s) |d| {
     //         std.debug.print("{d} ", .{d});

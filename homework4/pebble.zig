@@ -178,10 +178,8 @@ pub fn main() !void {
     );
     defer allocator.free(all_data);
 
-    try parseAndRunCombinedArray(allocator,all_data);
+    try parseAndRunCombinedArray(allocator, all_data);
 
     // std.debug.print("this is res: \n", .{});
     // try printResults(testing);
-
-    buffer[1] = '1';
 }

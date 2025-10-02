@@ -111,7 +111,7 @@ fn parseAndRunCombinedArray(comptime T: type, data: []u8, allocator: std.mem.All
     @memset(list, 0);
     var indx: usize = 0;
     while (splitter.next()) |token| {
-        if (std.mem.eql(u8,token, "")) {
+        if (std.mem.eql(u8, token, "")) {
             continue;
         }
         const value = try std.fmt.parseInt(usize, token, 10)-1;
@@ -177,11 +177,9 @@ pub fn main() !void {
     );
     defer allocator.free(all_data);
 
-    const testing = try parseAndRunCombinedArray(usize, all_data,allocator,);
+    const testing = try parseAndRunCombinedArray(usize, all_data, allocator);
 
     defer allocator.free(testing);
     // std.debug.print("this is res: \n", .{});
     try printResults(testing);
-
-    buffer[1] = '1';
 }

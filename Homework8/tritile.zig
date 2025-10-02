@@ -43,10 +43,10 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
     try cache.append(3); //f(2)
 
     while (splitter.next()) |token| {
-        if (std.mem.eql(u8,token, "")) {
+        if (std.mem.eql(u8, token, "")) {
             continue;
         }
-        if (std.mem.eql(u8,token, "-1")) {
+        if (std.mem.eql(u8, token, "-1")) {
             break;
         }
         const inp = try std.fmt.parseInt(usize, token,10);

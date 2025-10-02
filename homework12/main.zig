@@ -10,7 +10,7 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
     const writer = buffered.writer();
 
     while (splitter.next()) |token| {
-        if (std.mem.eql(u8,token, "") or std.mem.eql(u8,token, "0")) {
+        if (std.mem.eql(u8, token, "") or std.mem.eql(u8, token, "0")) {
             continue;
         }
 

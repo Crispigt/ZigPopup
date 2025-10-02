@@ -543,7 +543,7 @@ pub fn helpMeSolve2(line1: []u8, line2: []u8, allocator: anytype) ![]const u8 {
     // std.debug.print("restult1: {s}\nresult2: {s}\n", .{result, result2});
 
 
-    if (std.mem.eql(u8,result,result2)) {
+    if (std.mem.eql(u8, result, result2)) {
         return result;
     }
     return "-";
@@ -551,7 +551,7 @@ pub fn helpMeSolve2(line1: []u8, line2: []u8, allocator: anytype) ![]const u8 {
 
 fn checkForReferense(node: *Node, targetNode: []u8) bool {
     for(node.nodeList.items)|nodes| {
-        if (std.mem.eql(u8,nodes,targetNode)) {
+        if (std.mem.eql(u8, nodes, targetNode)) {
         } else {
             return false;
         }
@@ -616,8 +616,6 @@ pub fn main() !void {
     const tes= try solveAll(input, allocator);
 
     try printRes(tes);
-
-    buffer[1] = '1';
 
     // for (intArray.items) |s| {
     //     for (s) |d| {

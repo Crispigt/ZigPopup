@@ -25,7 +25,7 @@ fn parseAndRunCombinedArray(allocator: std.mem.Allocator, data: []u8) !void {
     const n = try std.fmt.parseFloat(f64, splitter.next().?);
 
     while (splitter.next()) |token| {
-        if (std.mem.eql(u8,token, "")) {
+        if (std.mem.eql(u8, token, "")) {
             continue;
         }
     }
@@ -47,10 +47,8 @@ pub fn main() !void {
     );
     defer allocator.free(all_data);
 
-    try parseAndRunCombinedArray(aa,all_data);
+    try parseAndRunCombinedArray(aa, all_data);
 
     // std.debug.print("this is res: \n", .{});
     // try printResults(testing);
-
-    buffer[1] = '1';
 }
